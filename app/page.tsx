@@ -58,6 +58,20 @@ export default function Home() {
           >
             Documentation
           </a>
+          <a
+            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] md:w-[158px] dark:border-white/[.145] dark:hover:bg-[#1a1a1a]"
+            href="/chat"
+          >
+            <Image
+              className="dark:invert"
+              src="/chat.png"
+              alt="Chat"
+              width={16}
+              height={16}
+              priority
+            />
+            Go to Chat
+          </a>
         </div>
       </main>
     </div>

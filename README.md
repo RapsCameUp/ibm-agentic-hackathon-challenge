@@ -20,6 +20,21 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Backend API
+
+The NestJS backend powers the WatsonX agent integration and other server features. To start it locally:
+
+```bash
+npm install           # first-time dependency install (includes backend deps)
+npm run backend:dev   # starts the Nest server with ts-node
+```
+
+By default the backend listens on [http://localhost:4000](http://localhost:4000). CORS is open for local development, so the Next.js app can call the API directly.
+
+Environment variables for the WatsonX integration are read from `.env.local`. Ensure values such as `WATSONX_API_URL`, `WATSONX_AGENT_ID`, and key material are defined before enabling the real agent; otherwise, the backend falls back to the placeholder response "Votre reponse est en cours de traitement...".
+
+If you change environment variables, restart the backend process for them to take effect.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
