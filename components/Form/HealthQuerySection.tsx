@@ -22,10 +22,10 @@ export default function HealthQuerySection({ form }: Props) {
 
   return (
     <FieldSet>
-      <FieldLegend className="text-xl font-semibold">Your Health Concern</FieldLegend>
+      <FieldLegend>Your Health Concern</FieldLegend>
       <FieldDescription>The AI will carefully analyze this information</FieldDescription>
 
-      <FieldGroup className="mt-6 space-y-6">
+      <FieldGroup className="mt-3 space-y-6">
         <Field>
           <FieldLabel htmlFor="symptoms">Symptoms / Description *</FieldLabel>
           <Textarea

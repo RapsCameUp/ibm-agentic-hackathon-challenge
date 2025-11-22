@@ -33,10 +33,10 @@ export default function PersonalInfoSection({ form }: Props) {
 
   return (
     <FieldSet>
-      <FieldLegend className="text-xl font-semibold">Personal Information</FieldLegend>
+      <FieldLegend>Personal Information</FieldLegend>
       <FieldDescription>Please provide accurate details</FieldDescription>
 
-      <FieldGroup className="mt-6 grid gap-6 md:grid-cols-2">
+      <FieldGroup className="mt-3 grid gap-6 md:grid-cols-2">
         <Field>
           <FieldLabel htmlFor="fullName">Full Name *</FieldLabel>
           <Input id="fullName" placeholder="John Doe" {...register('fullName')} />
