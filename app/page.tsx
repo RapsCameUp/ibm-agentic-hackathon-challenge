@@ -205,7 +205,7 @@ export default function Home() {
             </p>
 
             <a
-              href="/dashboard"
+              href="/form"
               className="group inline-flex items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-12 py-5 text-xl font-semibold shadow-lg shadow-blue-500/50 transition-all duration-300 hover:scale-105 hover:from-blue-500 hover:to-purple-500 hover:shadow-xl hover:shadow-blue-500/60"
             >
               Go to Dashboard
