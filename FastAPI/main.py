@@ -2,9 +2,11 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, field_validator
 from dotenv import load_dotenv
 from typing import Optional, List
+from datetime import datetime, timedelta
 import httpx
 import os
 import json
+import asyncio
 
 # ==========================
 # LOAD ENV VARIABLES
@@ -12,7 +14,6 @@ import json
 load_dotenv()
 
 IBM_API_KEY = os.getenv("IBM_API_KEY")
-BEARER_TOKEN = os.getenv("BEARER_TOKEN")
 INSTANCE_URL = os.getenv("INSTANCE_URL")
 IBM_IAM_URL = os.getenv("IBM_IAM_URL", "https://iam.cloud.ibm.com/identity/token")
 ANALYSIS_AGENT_ID = os.getenv("ANALYSIS_AGENT_ID")
@@ -23,7 +24,6 @@ CALENDAR_AGENT_ID = os.getenv("CALENDAR_AGENT_ID")
 missing = []
 for k, v in {
     "IBM_API_KEY": IBM_API_KEY,
-    "BEARER_TOKEN": BEARER_TOKEN,
     "INSTANCE_URL": INSTANCE_URL,
     "ANALYSIS_AGENT_ID": ANALYSIS_AGENT_ID
 }.items():
@@ -31,8 +31,56 @@ for k, v in {
         missing.append(k)
 
 if missing:
-    print(" Missing environment variables:", missing)
-    print("  Application may not work correctly!")
+    print("⚠️ Missing environment variables:", missing)
+    print("⚠️ Application may not work correctly!")
+
+# ==========================
+# TOKEN MANAGEMENT
+# ==========================
+class TokenManager:
+    def __init__(self):
+        self.token: Optional[str] = None
+        self.expires_at: Optional[datetime] = None
+        self.lock = asyncio.Lock()
+    
+    async def get_token(self) -> str:
+        """Get valid bearer token, refresh if needed"""
+        async with self.lock:
+            # Check if we have a valid token
+            if self.token and self.expires_at and datetime.now() < self.expires_at:
+                return self.token
+            
+            # Generate new token
+            print("🔄 Generating new bearer token...")
+            data = {
+                "grant_type": "urn:ibm:params:oauth:grant-type:apikey",
+                "apikey": IBM_API_KEY
+            }
+            headers = {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.post(IBM_IAM_URL, data=data, headers=headers)
+                
+                if response.status_code != 200:
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Failed to get token: {response.text}"
+                    )
+                
+                token_data = response.json()
+                self.token = token_data.get("access_token")
+                expires_in = token_data.get("expires_in", 3600)  # Default 1 hour
+                
+                # Set expiry 5 minutes before actual expiry for safety
+                self.expires_at = datetime.now() + timedelta(seconds=expires_in - 300)
+                
+                print(f"✅ Token generated, expires at {self.expires_at}")
+                return self.token
+
+# Global token manager
+token_manager = TokenManager()
 
 # ==========================
 # FASTAPI APP
@@ -74,17 +122,18 @@ def extract_content(response_text: str) -> str:
     for line in lines:
         try:
             data = json.loads(line)
+            
             # Look for message.delta events with content
             if data.get('event') == 'message.delta':
                 if 'data' in data:
-                    # Try different possible content locations
                     content = (
-                        data['data'].get('content') or 
+                        data['data'].get('content') or
                         data['data'].get('delta', {}).get('content') or
                         data['data'].get('text', '')
                     )
                     if content:
                         content_parts.append(str(content))
+            
             # Also check for message.completed events
             elif data.get('event') == 'message.completed':
                 if 'data' in data and 'content' in data['data']:
@@ -95,20 +144,22 @@ def extract_content(response_text: str) -> str:
     return ''.join(content_parts) if content_parts else response_text
 
 async def run_orchestrator_agent(
-    message: str, 
-    agent_id: str, 
+    message: str,
+    agent_id: str,
     thread_id: Optional[str] = None
 ) -> dict:
-    """
-    Generic function to run any agent through orchestrator
-    """
+    """Generic function to run any agent through orchestrator"""
+    
+    # Get valid bearer token
+    bearer_token = await token_manager.get_token()
+    
     url = (
         f"{INSTANCE_URL}/v1/orchestrate/runs"
         "?stream=true&stream_timeout=120000&multiple_content=true"
     )
     
     headers = {
-        "Authorization": f"Bearer {BEARER_TOKEN}",
+        "Authorization": f"Bearer {bearer_token}",
         "IAM-API_KEY": IBM_API_KEY,
         "Accept": "application/json",
         "Content-Type": "application/json"
@@ -126,24 +177,24 @@ async def run_orchestrator_agent(
     try:
         async with httpx.AsyncClient(timeout=120) as client:
             response = await client.post(url, headers=headers, json=payload)
-        
-        if response.status_code != 200:
+            
+            if response.status_code != 200:
+                return {
+                    "success": False,
+                    "error": f"HTTP {response.status_code}",
+                    "response": response.text
+                }
+            
+            response_text = response.text
+            
             return {
-                "success": False,
-                "error": f"HTTP {response.status_code}",
-                "response": response.text
+                "success": True,
+                "status_code": response.status_code,
+                "thread_id": extract_thread_id(response_text),
+                "run_id": extract_run_id(response_text),
+                "content": extract_content(response_text),
+                "raw_response": response_text
             }
-        
-        response_text = response.text
-        
-        return {
-            "success": True,
-            "status_code": response.status_code,
-            "thread_id": extract_thread_id(response_text),
-            "run_id": extract_run_id(response_text),
-            "content": extract_content(response_text),
-            "raw_response": response_text
-        }
     
     except Exception as e:
         return {
@@ -152,7 +203,7 @@ async def run_orchestrator_agent(
         }
 
 # ==========================
-# REQUEST MODEL
+# REQUEST MODELS
 # ==========================
 class HealthFormData(BaseModel):
     name: str
@@ -176,60 +227,46 @@ class RunRequest(BaseModel):
     def empty_string_to_none(cls, v):
         return None if v in ("", None) else v
 
-
 # ==========================
 # POST /get-token
 # ==========================
 @app.post("/get-token")
 async def get_token():
-
-    data = {
-        "grant_type": "urn:ibm:params:oauth:grant-type:apikey",
-        "apikey": IBM_API_KEY
-    }
-
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-
-    async with httpx.AsyncClient() as client:
-        response = await client.post(IBM_IAM_URL, data=data, headers=headers)
-
-    if response.status_code != 200:
+    """Manually generate a new token (for testing)"""
+    try:
+        token = await token_manager.get_token()
         return {
-            "error": "Failed to retrieve token",
-            "status_code": response.status_code,
-            "response": response.text
+            "access_token": token,
+            "expires_at": token_manager.expires_at.isoformat() if token_manager.expires_at else None
         }
-
-    token = response.json().get("access_token")
-    print("Access Token:", token)
-
-    return {"access_token": token}
-
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ==========================
 # GET /orchestrate-agents
 # ==========================
 @app.get("/orchestrate-agents")
 async def get_orchestrate_agents():
+    """List all available orchestrate agents"""
+    bearer_token = await token_manager.get_token()
+    
     url = f"{INSTANCE_URL}/v1/orchestrate/agents"
     headers = {
-        "Authorization": f"Bearer {BEARER_TOKEN}",
+        "Authorization": f"Bearer {bearer_token}",
         "Accept": "application/json",
     }
-
+    
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(url, headers=headers)
     except Exception as e:
         return {"error": f"HTTP error: {str(e)}"}
-
+    
     try:
         data = response.json()
     except Exception:
         data = response.text
-
+    
     return {
         "status_code": response.status_code,
         "response": data
@@ -257,7 +294,7 @@ async def submit_health_form(form: HealthFormData):
     """
     if not ANALYSIS_AGENT_ID:
         raise HTTPException(
-            status_code=500, 
+            status_code=500,
             detail="ANALYSIS_AGENT_ID not configured in environment"
         )
     
@@ -296,7 +333,7 @@ Please provide a comprehensive analysis with actionable recommendations.
     
     thread_id = result.get("thread_id")
     if not thread_id:
-        print("  Warning: Could not extract thread_id from response")
+        print("⚠️ Warning: Could not extract thread_id from response")
     
     return {
         "success": True,
@@ -402,6 +439,10 @@ async def root():
         "name": "Multi-Agent Health Orchestrator API",
         "version": "1.0.0",
         "status": "running",
+        "token_status": {
+            "has_token": token_manager.token is not None,
+            "expires_at": token_manager.expires_at.isoformat() if token_manager.expires_at else None
+        },
         "endpoints": {
             "health_workflow": {
                 "1_submit_form": "POST /submit-health-form",
