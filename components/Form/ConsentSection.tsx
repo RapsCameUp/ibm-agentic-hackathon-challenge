@@ -16,7 +16,7 @@ export default function ConsentSection({ form }: Props) {
   return (
     <FieldSet>
       <Field orientation="horizontal" className="items-start gap-3">
-        <Checkbox id="consent" {...register('consent')} />
+        <Checkbox id="consent" />
         <FieldLabel htmlFor="consent" className="cursor-pointer leading-tight font-normal">
           I consent to AI processing of my health data according to the{' '}
           <a href="/privacy" className="text-emerald-600 underline hover:text-emerald-700">
@@ -25,9 +25,6 @@ export default function ConsentSection({ form }: Props) {
           . *
         </FieldLabel>
       </Field>
-      {errors.consent && (
-        <p className="mt-2 w-full text-sm text-red-500">{errors.consent.message}</p>
-      )}
     </FieldSet>
   );
 }
