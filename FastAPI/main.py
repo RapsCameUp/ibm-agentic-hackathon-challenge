@@ -31,8 +31,8 @@ for k, v in {
         missing.append(k)
 
 if missing:
-    print("⚠️ Missing environment variables:", missing)
-    print("⚠️ Application may not work correctly!")
+    print(" Missing environment variables:", missing)
+    print(" Application may not work correctly!")
 
 # ==========================
 # TOKEN MANAGEMENT
@@ -76,7 +76,7 @@ class TokenManager:
                 # Set expiry 5 minutes before actual expiry for safety
                 self.expires_at = datetime.now() + timedelta(seconds=expires_in - 300)
                 
-                print(f"✅ Token generated, expires at {self.expires_at}")
+                print(f" Token generated, expires at {self.expires_at}")
                 return self.token
 
 # Global token manager
@@ -333,7 +333,7 @@ Please provide a comprehensive analysis with actionable recommendations.
     
     thread_id = result.get("thread_id")
     if not thread_id:
-        print("⚠️ Warning: Could not extract thread_id from response")
+        print(" Warning: Could not extract thread_id from response")
     
     return {
         "success": True,
