@@ -466,7 +466,7 @@ Format recommendations clearly and friendly.
     result = await run_orchestrator_agent(message=message, agent_id=RECOMMENDATION_AGENT_ID, thread_id=req.thread_id)
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=f"Recommendation agent failed: {result.get('error')}")
-    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+    return {"success": True, "response": result.get("raw_response"), "thread_id": result.get("thread_id")}
 
 # =========================
 # Appointment Automation Agent
@@ -487,7 +487,7 @@ Use available calendar info and optimize schedule.
     result = await run_orchestrator_agent(message=message, agent_id=APPOINTMENT_AUTOMATION_ID, thread_id=req.thread_id)
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=f"Appointment automation agent failed: {result.get('error')}")
-    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+    return {"success": True, "response": result.get("raw_response"), "thread_id": result.get("thread_id")}
 
 # =========================
 # Alert Agent
@@ -507,7 +507,7 @@ Format alerts clearly and concisely.
     result = await run_orchestrator_agent(message=message, agent_id=ALERT_AGENT_ID, thread_id=req.thread_id)
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=f"Alert agent failed: {result.get('error')}")
-    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+    return {"success": True, "response": result.get("raw_response"), "thread_id": result.get("thread_id")}
 
 # =========================
 # Health Assistant Agent
@@ -527,7 +527,7 @@ Format responses in a friendly, encouraging tone.
     result = await run_orchestrator_agent(message=message, agent_id=HEALTH_ASSISTANT_AGENT_ID, thread_id=req.thread_id)
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=f"Health assistant agent failed: {result.get('error')}")
-    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+    return {"success": True, "response": result.get("raw_response"), "thread_id": result.get("thread_id")}
 
 # =========================
 # Work Agent
@@ -546,7 +546,7 @@ Manage user's work-health balance:
     result = await run_orchestrator_agent(message=message, agent_id=WORK_AGENT_ID, thread_id=req.thread_id)
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=f"Work agent failed: {result.get('error')}")
-    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+    return {"success": True, "response": result.get("raw_response"), "thread_id": result.get("thread_id")}
 
 # =========================
 # BodyHealth Agent
@@ -565,7 +565,7 @@ Provide insights on body health metrics:
     result = await run_orchestrator_agent(message=message, agent_id=BODYHEALTHAGENT_ID, thread_id=req.thread_id)
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=f"BodyHealth agent failed: {result.get('error')}")
-    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+    return {"success": True, "response": result.get("raw_response"), "thread_id": result.get("thread_id")}
 
 # =========================
 # Posture Agent
@@ -584,7 +584,7 @@ Monitor and correct user's posture:
     result = await run_orchestrator_agent(message=message, agent_id=POSTURE_AGENT_ID, thread_id=req.thread_id)
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=f"Posture agent failed: {result.get('error')}")
-    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+    return {"success": True, "response": result.get("raw_response"), "thread_id": result.get("thread_id")}
 
 # =========================
 # Sleep Agent
@@ -603,7 +603,7 @@ Analyze user's sleep patterns and give recommendations:
     result = await run_orchestrator_agent(message=message, agent_id=SLEEPAGENT_ID, thread_id=req.thread_id)
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=f"Sleep agent failed: {result.get('error')}")
-    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+    return {"success": True, "response": result.get("raw_response"), "thread_id": result.get("thread_id")}
 
 # =========================
 # Exercise Agent
@@ -622,7 +622,7 @@ Generate personalized exercise plans for the user:
     result = await run_orchestrator_agent(message=message, agent_id=EXERCISEAGENT_ID, thread_id=req.thread_id)
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=f"Exercise agent failed: {result.get('error')}")
-    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+    return {"success": True, "response": result.get("raw_response"), "thread_id": result.get("thread_id")}
 
 # =========================
 # Diet Agent
@@ -642,7 +642,7 @@ Create a personalized diet plan for the user:
     result = await run_orchestrator_agent(message=message, agent_id=DIETAGENT_ID, thread_id=req.thread_id)
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=f"Diet agent failed: {result.get('error')}")
-    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+    return {"success": True, "response": result.get("raw_response"), "thread_id": result.get("thread_id")}
 
 # =========================
 # Healthy Diet Agent
@@ -661,7 +661,7 @@ Generate a healthy diet plan considering user's preferences and restrictions:
     result = await run_orchestrator_agent(message=message, agent_id=HEALTHYDIET_ID, thread_id=req.thread_id)
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=f"Healthy diet agent failed: {result.get('error')}")
-    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+    return {"success": True, "response": result.get("raw_response"), "thread_id": result.get("thread_id")}
 
 # =========================
 # PA Allocation Agent
@@ -680,7 +680,7 @@ Allocate health assistants (PA) to users based on their needs and availability:
     result = await run_orchestrator_agent(message=message, agent_id=PA_ALLOCATION_AGENT_ID, thread_id=req.thread_id)
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=f"PA allocation agent failed: {result.get('error')}")
-    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+    return {"success": True, "response": result.get("raw_response"), "thread_id": result.get("thread_id")}
 
 # =========================
 # PA Manager Agent
@@ -699,7 +699,7 @@ Manage personal assistants:
     result = await run_orchestrator_agent(message=message, agent_id=PA_MANAGER_ID, thread_id=req.thread_id)
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=f"PA manager agent failed: {result.get('error')}")
-    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+    return {"success": True, "response": result.get("raw_response"), "thread_id": result.get("thread_id")}
 
 # =========================
 # Ask Orchestrate Agent
@@ -718,7 +718,7 @@ Answer general queries using orchestration:
     result = await run_orchestrator_agent(message=message, agent_id=ASKORCHESTRATE_ID, thread_id=req.thread_id)
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=f"Ask Orchestrate agent failed: {result.get('error')}")
-    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+    return {"success": True, "response": result.get("raw_response"), "thread_id": result.get("thread_id")}
 
 # ==========================
 # INFO ENDPOINT
