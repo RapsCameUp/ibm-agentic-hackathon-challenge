@@ -7,6 +7,7 @@ import { RecommendationsModule } from './src/recommendations/recommendations.mod
 import { RemindersModule } from './src/reminders/reminders.module';
 import { CalendarModule } from './src/calendar/calendar.module';
 import { ShareModule } from './src/share/share.module';
+import { IntegrationsModule } from './src/integrations/integrations.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ShareModule } from './src/share/share.module';
     RemindersModule,
     CalendarModule,
     ShareModule,
+    IntegrationsModule,
   ],
 })
 export class AppModule {}

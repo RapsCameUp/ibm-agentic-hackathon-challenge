@@ -15,16 +15,22 @@ const DietSummary2: React.FC<DietSummary2Props> = ({ summary }) => {
     );
   }
 
+  const { title, description, calories, highlights = [] } = summary;
+
   return (
     <section className="panel">
-      <h2>{summary.title}</h2>
-      <p>{summary.description}</p>
-      <div className="panel__meta">~{summary.calories} kcal</div>
-      <ul className="panel__list">
-        {summary.highlights.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ul>
+      <h2>{title || 'Diet 2'}</h2>
+      <p>{description || 'No description available.'}</p>
+      {calories && <div className="panel__meta">~{calories} kcal</div>}
+      {highlights && highlights.length > 0 ? (
+        <ul className="panel__list">
+          {highlights.map((item, index) => (
+            <li key={`highlight-${index}`}>{item}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="panel__empty">No key points available.</p>
+      )}
     </section>
   );
 };

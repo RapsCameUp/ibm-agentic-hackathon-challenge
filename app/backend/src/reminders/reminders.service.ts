@@ -10,14 +10,12 @@ export interface ReminderItem {
 export class RemindersService {
   private readonly remindersByConversation = new Map<string, ReminderItem[]>();
 
+  getFallbackReminders(context: string): string[] {
+    return [];
+  }
+
   generateReminders(context: string): string[] {
-    const baseReminders = ['Take a 5-minute break every hour', 'Log your meals after each meal'];
-
-    if (context.toLowerCase().includes('sleep')) {
-      baseReminders.push('Set a reminder to wind down 30 minutes before bedtime');
-    }
-
-    return baseReminders;
+    return this.getFallbackReminders(context);
   }
 
   listReminders(conversationId: string): ReminderItem[] {

@@ -59,7 +59,10 @@ export default function PersonalInfoSection({ form }: Props) {
 
         <Field>
           <FieldLabel htmlFor="gender">Gender *</FieldLabel>
-          <Select onValueChange={(v) => setValue('gender', v as any)} value={watch('gender')}>
+          <Select
+            onValueChange={(v) => setValue('gender', v as any)}
+            defaultValue={watch('gender')}
+          >
             <SelectTrigger id="gender">
               <SelectValue placeholder="Select gender" />
             </SelectTrigger>

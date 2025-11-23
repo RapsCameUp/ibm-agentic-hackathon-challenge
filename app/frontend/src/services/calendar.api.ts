@@ -1,13 +1,18 @@
-import { apiFetch } from './api';
+import { FASTAPI_BASE_URL } from './api';
 
 export async function syncToGoogle(conversationId: string): Promise<boolean> {
-  const response = await apiFetch<{ success: boolean }>(`/calendar/sync/${conversationId}`, {
+  const response = await fetch(`${FASTAPI_BASE_URL}/add-calendar-events`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ thread_id: conversationId }),
   });
-  return response.success;
+
+  if (!response.ok) return false;
+  const data = await response.json();
+  return data.success === true;
 }
 
 export async function isSynced(conversationId: string): Promise<boolean> {
-  const response = await apiFetch<{ synced: boolean }>(`/calendar/synced/${conversationId}`);
-  return response.synced;
+  // Not implemented in FastAPI yet
+  return false;
 }
