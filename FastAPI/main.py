@@ -19,6 +19,20 @@ IBM_IAM_URL = os.getenv("IBM_IAM_URL", "https://iam.cloud.ibm.com/identity/token
 ANALYSIS_AGENT_ID = os.getenv("ANALYSIS_AGENT_ID")
 WHATSAPP_AGENT_ID = os.getenv("WHATSAPP_AGENT_ID")
 CALENDAR_AGENT_ID = os.getenv("CALENDAR_AGENT_ID")
+RECOMMENDATION_AGENT_ID = os.getenv("RECOMMENDATION_AGENT_ID")
+APPOINTMENT_AUTOMATION_ID = os.getenv("APPOINTMENT_AUTOMATION_ID")
+ALERT_AGENT_ID = os.getenv("ALERT_AGENT_ID")
+HEALTH_ASSISTANT_AGENT_ID = os.getenv("HEALTH_ASSISTANT_AGENT_ID")
+WORK_AGENT_ID = os.getenv("WORK_AGENT_ID")
+BODYHEALTHAGENT_ID = os.getenv("BODYHEALTHAGENT_ID")
+POSTURE_AGENT_ID = os.getenv("POSTURE_AGENT_ID")
+SLEEPAGENT_ID = os.getenv("SLEEPAGENT_ID")
+EXERCISEAGENT_ID = os.getenv("EXERCISEAGENT_ID")
+DIETAGENT_ID = os.getenv("DIETAGENT_ID")
+HEALTHYDIET_ID = os.getenv("HEALTHYDIET_ID")
+PA_ALLOCATION_AGENT_ID = os.getenv("PA_ALLOCATION_AGENT_ID")
+PA_MANAGER_ID = os.getenv("PA_MANAGER_ID")
+ASKORCHESTRATE_ID = os.getenv("ASKORCHESTRATE_ID")
 
 # Validate required items
 missing = []
@@ -51,7 +65,7 @@ class TokenManager:
                 return self.token
             
             # Generate new token
-            print("🔄 Generating new bearer token...")
+            print(" Generating new bearer token...")
             data = {
                 "grant_type": "urn:ibm:params:oauth:grant-type:apikey",
                 "apikey": IBM_API_KEY
@@ -285,6 +299,8 @@ async def orchestrate_run(req: RunRequest):
 # ==========================
 # WORKFLOW-SPECIFIC ENDPOINTS
 # ==========================
+
+# 1. ANALYSIS AGENT
 @app.post("/submit-health-form")
 async def submit_health_form(form: HealthFormData):
     """
@@ -341,9 +357,10 @@ Please provide a comprehensive analysis with actionable recommendations.
         "run_id": result.get("run_id"),
         "analysis": result.get("content"),
         "message": "Health analysis completed successfully",
-        "raw_response": result.get("raw_response")  # For debugging
+        "raw_response": result.get("raw_response")
     }
 
+# 2. WHATSAPP AGENT
 @app.post("/send-whatsapp")
 async def send_whatsapp_messages(req: ThreadRequest):
     """
@@ -370,7 +387,7 @@ Format the messages in a friendly, encouraging tone.
     result = await run_orchestrator_agent(
         message=message,
         agent_id=WHATSAPP_AGENT_ID,
-        thread_id=req.thread_id  # Use existing thread for context
+        thread_id=req.thread_id
     )
     
     if not result.get("success"):
@@ -386,6 +403,7 @@ Format the messages in a friendly, encouraging tone.
         "thread_id": result.get("thread_id")
     }
 
+# 3. CALENDAR AGENT
 @app.post("/add-calendar-events")
 async def add_calendar_events(req: ThreadRequest):
     """
@@ -429,6 +447,279 @@ Create recurring events where appropriate and set reasonable times.
         "thread_id": result.get("thread_id")
     }
 
+# =========================
+# Recommendation Agent
+# =========================
+@app.post("/run-recommendation-agent")
+async def run_recommendation_agent(req: ThreadRequest):
+    if not RECOMMENDATION_AGENT_ID:
+        raise HTTPException(status_code=500, detail="RECOMMENDATION_AGENT_ID not configured.")
+    
+    message = """
+Based on the user's health data and previous analysis, generate personalized recommendations for:
+1. Diet adjustments
+2. Exercise routines
+3. Sleep and wellness tips
+4. Preventive health actions
+Format recommendations clearly and friendly.
+"""
+    result = await run_orchestrator_agent(message=message, agent_id=RECOMMENDATION_AGENT_ID, thread_id=req.thread_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=f"Recommendation agent failed: {result.get('error')}")
+    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+
+# =========================
+# Appointment Automation Agent
+# =========================
+@app.post("/run-appointment-automation-agent")
+async def run_appointment_automation_agent(req: ThreadRequest):
+    if not APPOINTMENT_AUTOMATION_ID:
+        raise HTTPException(status_code=500, detail="APPOINTMENT_AUTOMATION_ID not configured.")
+    
+    message = """
+Automate scheduling appointments for the user based on their health plan:
+1. Doctor visits
+2. Therapy sessions
+3. Lab tests
+4. Reminders for appointments
+Use available calendar info and optimize schedule.
+"""
+    result = await run_orchestrator_agent(message=message, agent_id=APPOINTMENT_AUTOMATION_ID, thread_id=req.thread_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=f"Appointment automation agent failed: {result.get('error')}")
+    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+
+# =========================
+# Alert Agent
+# =========================
+@app.post("/run-alert-agent")
+async def run_alert_agent(req: ThreadRequest):
+    if not ALERT_AGENT_ID:
+        raise HTTPException(status_code=500, detail="ALERT_AGENT_ID not configured.")
+    
+    message = """
+Monitor user health data and generate alerts for:
+1. Abnormal readings
+2. Missed medication
+3. Urgent health conditions
+Format alerts clearly and concisely.
+"""
+    result = await run_orchestrator_agent(message=message, agent_id=ALERT_AGENT_ID, thread_id=req.thread_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=f"Alert agent failed: {result.get('error')}")
+    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+
+# =========================
+# Health Assistant Agent
+# =========================
+@app.post("/run-health-assistant-agent")
+async def run_health_assistant_agent(req: ThreadRequest):
+    if not HEALTH_ASSISTANT_AGENT_ID:
+        raise HTTPException(status_code=500, detail="HEALTH_ASSISTANT_AGENT_ID not configured.")
+    
+    message = """
+Assist the user in daily health tasks:
+1. Provide health tips
+2. Answer health questions
+3. Give reminders for diet, exercise, and sleep
+Format responses in a friendly, encouraging tone.
+"""
+    result = await run_orchestrator_agent(message=message, agent_id=HEALTH_ASSISTANT_AGENT_ID, thread_id=req.thread_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=f"Health assistant agent failed: {result.get('error')}")
+    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+
+# =========================
+# Work Agent
+# =========================
+@app.post("/run-work-agent")
+async def run_work_agent(req: ThreadRequest):
+    if not WORK_AGENT_ID:
+        raise HTTPException(status_code=500, detail="WORK_AGENT_ID not configured.")
+    
+    message = """
+Manage user's work-health balance:
+1. Suggest optimal break times
+2. Recommend desk exercises
+3. Provide reminders for posture and hydration
+"""
+    result = await run_orchestrator_agent(message=message, agent_id=WORK_AGENT_ID, thread_id=req.thread_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=f"Work agent failed: {result.get('error')}")
+    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+
+# =========================
+# BodyHealth Agent
+# =========================
+@app.post("/run-bodyhealth-agent")
+async def run_bodyhealth_agent(req: ThreadRequest):
+    if not BODYHEALTHAGENT_ID:
+        raise HTTPException(status_code=500, detail="BODYHEALTHAGENT_ID not configured.")
+    
+    message = """
+Provide insights on body health metrics:
+1. Analyze posture, BMI, weight
+2. Suggest corrective exercises
+3. Track improvements
+"""
+    result = await run_orchestrator_agent(message=message, agent_id=BODYHEALTHAGENT_ID, thread_id=req.thread_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=f"BodyHealth agent failed: {result.get('error')}")
+    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+
+# =========================
+# Posture Agent
+# =========================
+@app.post("/run-posture-agent")
+async def run_posture_agent(req: ThreadRequest):
+    if not POSTURE_AGENT_ID:
+        raise HTTPException(status_code=500, detail="POSTURE_AGENT_ID not configured.")
+    
+    message = """
+Monitor and correct user's posture:
+1. Provide posture exercises
+2. Give reminders for sitting/standing correctly
+3. Track posture improvements
+"""
+    result = await run_orchestrator_agent(message=message, agent_id=POSTURE_AGENT_ID, thread_id=req.thread_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=f"Posture agent failed: {result.get('error')}")
+    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+
+# =========================
+# Sleep Agent
+# =========================
+@app.post("/run-sleep-agent")
+async def run_sleep_agent(req: ThreadRequest):
+    if not SLEEPAGENT_ID:
+        raise HTTPException(status_code=500, detail="SLEEPAGENT_ID not configured.")
+    
+    message = """
+Analyze user's sleep patterns and give recommendations:
+1. Ideal sleep schedule
+2. Tips to improve sleep quality
+3. Track sleep progress
+"""
+    result = await run_orchestrator_agent(message=message, agent_id=SLEEPAGENT_ID, thread_id=req.thread_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=f"Sleep agent failed: {result.get('error')}")
+    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+
+# =========================
+# Exercise Agent
+# =========================
+@app.post("/run-exercise-agent")
+async def run_exercise_agent(req: ThreadRequest):
+    if not EXERCISEAGENT_ID:
+        raise HTTPException(status_code=500, detail="EXERCISEAGENT_ID not configured.")
+    
+    message = """
+Generate personalized exercise plans for the user:
+1. Daily workouts
+2. Targeted muscle groups
+3. Adjust intensity based on user profile
+"""
+    result = await run_orchestrator_agent(message=message, agent_id=EXERCISEAGENT_ID, thread_id=req.thread_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=f"Exercise agent failed: {result.get('error')}")
+    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+
+# =========================
+# Diet Agent
+# =========================
+@app.post("/run-diet-agent")
+async def run_diet_agent(req: ThreadRequest):
+    if not DIETAGENT_ID:
+        raise HTTPException(status_code=500, detail="DIETAGENT_ID not configured.")
+    
+    message = """
+Create a personalized diet plan for the user:
+1. Daily meals
+2. Snacks
+3. Nutritional targets
+4. Adjust based on user's health data
+"""
+    result = await run_orchestrator_agent(message=message, agent_id=DIETAGENT_ID, thread_id=req.thread_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=f"Diet agent failed: {result.get('error')}")
+    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+
+# =========================
+# Healthy Diet Agent
+# =========================
+@app.post("/run-healthy-diet-agent")
+async def run_healthy_diet_agent(req: ThreadRequest):
+    if not HEALTHYDIET_ID:
+        raise HTTPException(status_code=500, detail="HEALTHYDIET_ID not configured.")
+    
+    message = """
+Generate a healthy diet plan considering user's preferences and restrictions:
+1. Balanced meals
+2. Vitamins and minerals
+3. Avoid allergens
+"""
+    result = await run_orchestrator_agent(message=message, agent_id=HEALTHYDIET_ID, thread_id=req.thread_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=f"Healthy diet agent failed: {result.get('error')}")
+    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+
+# =========================
+# PA Allocation Agent
+# =========================
+@app.post("/run-pa-allocation-agent")
+async def run_pa_allocation_agent(req: ThreadRequest):
+    if not PA_ALLOCATION_AGENT_ID:
+        raise HTTPException(status_code=500, detail="PA_ALLOCATION_AGENT_ID not configured.")
+    
+    message = """
+Allocate health assistants (PA) to users based on their needs and availability:
+1. Match users to the best suited PA
+2. Ensure workload balance
+3. Track allocations
+"""
+    result = await run_orchestrator_agent(message=message, agent_id=PA_ALLOCATION_AGENT_ID, thread_id=req.thread_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=f"PA allocation agent failed: {result.get('error')}")
+    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+
+# =========================
+# PA Manager Agent
+# =========================
+@app.post("/run-pa-manager-agent")
+async def run_pa_manager_agent(req: ThreadRequest):
+    if not PA_MANAGER_ID:
+        raise HTTPException(status_code=500, detail="PA_MANAGER_ID not configured.")
+    
+    message = """
+Manage personal assistants:
+1. Monitor performance
+2. Handle task delegation
+3. Optimize PA assignments
+"""
+    result = await run_orchestrator_agent(message=message, agent_id=PA_MANAGER_ID, thread_id=req.thread_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=f"PA manager agent failed: {result.get('error')}")
+    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+
+# =========================
+# Ask Orchestrate Agent
+# =========================
+@app.post("/run-ask-orchestrate-agent")
+async def run_ask_orchestrate_agent(req: ThreadRequest):
+    if not ASKORCHESTRATE_ID:
+        raise HTTPException(status_code=500, detail="ASKORCHESTRATE_ID not configured.")
+    
+    message = """
+Answer general queries using orchestration:
+1. Provide health advice
+2. Handle user questions
+3. Direct questions to appropriate agents if needed
+"""
+    result = await run_orchestrator_agent(message=message, agent_id=ASKORCHESTRATE_ID, thread_id=req.thread_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=500, detail=f"Ask Orchestrate agent failed: {result.get('error')}")
+    return {"success": True, "content": result.get("content"), "thread_id": result.get("thread_id")}
+
 # ==========================
 # INFO ENDPOINT
 # ==========================
@@ -458,7 +749,20 @@ async def root():
         "configured_agents": {
             "analysis": ANALYSIS_AGENT_ID is not None,
             "whatsapp": WHATSAPP_AGENT_ID is not None,
-            "calendar": CALENDAR_AGENT_ID is not None
+            "calendar": CALENDAR_AGENT_ID is not None,
+            "recommendation": RECOMMENDATION_AGENT_ID is not None,
+            "appointment_automation": APPOINTMENT_AUTOMATION_ID is not None,
+            "alert": ALERT_AGENT_ID is not None,
+            "health_assistant": HEALTH_ASSISTANT_AGENT_ID is not None,
+            "bodyhealth": BODYHEALTHAGENT_ID is not None,
+            "posture": POSTURE_AGENT_ID is not None,
+            "sleep": SLEEPAGENT_ID is not None,
+            "exercise": EXERCISEAGENT_ID is not None,
+            "diet": DIETAGENT_ID is not None,
+            "healthy_diet": HEALTHYDIET_ID is not None,
+            "pa_allocation": PA_ALLOCATION_AGENT_ID is not None,
+            "pa_manager": PA_MANAGER_ID is not None,
+            "ask_orchestrate": ASKORCHESTRATE_ID is not None
         }
     }
 
