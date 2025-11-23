@@ -12,9 +12,6 @@ export const formSchema = z.object({
   }),
   symptoms: z.string().min(10, 'Please describe your symptoms (minimum 10 characters)'),
   medicalHistory: z.string().optional(),
-  consent: z.boolean().refine((val) => val === true, {
-    message: 'You must accept the privacy policy to continue',
-  }),
 });
 
 export type FormData = z.infer<typeof formSchema>;
