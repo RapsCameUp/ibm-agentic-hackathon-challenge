@@ -21,7 +21,6 @@ export default function MedicalIntakeForm() {
       gender: 'prefer-not-to-say',
       symptoms: '',
       medicalHistory: '',
-      consent: false,
     },
   });
 
