@@ -1,0 +1,33 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "add_readme",
+    "adding_configured_agent_endpoints",
+    "bug/form-chat-bug-fixed",
+    "change_api_response_type",
+    "chat_page",
+    "development",
+    "main",
+    "origin"
+  ],
+  "parent": {
+    "add_readme": "main",
+    "adding_configured_agent_endpoints": "main",
+    "bug/form-chat-bug-fixed": "main",
+    "change_api_response_type": "main",
+    "chat_page": "main",
+    "development": "main",
+    "main": null,
+    "origin": "main"
+  },
+  "order": [
+    "main",
+    "add_readme",
+    "adding_configured_agent_endpoints",
+    "bug/form-chat-bug-fixed",
+    "change_api_response_type",
+    "chat_page",
+    "development",
+    "origin"
+  ]
+}
