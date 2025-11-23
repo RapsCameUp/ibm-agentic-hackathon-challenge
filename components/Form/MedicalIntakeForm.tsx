@@ -67,7 +67,7 @@ export default function MedicalIntakeForm() {
         toast.error('Failed to analyze health data. Please try again.');
       }
     } catch (error) {
-      console.error(error);
+      console.error('Error', error);
       toast.error('An error occurred. Please try again.');
     }
   };
