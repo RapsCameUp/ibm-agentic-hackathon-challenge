@@ -736,9 +736,25 @@ async def root():
         },
         "endpoints": {
             "health_workflow": {
-                "1_submit_form": "POST /submit-health-form",
-                "2_send_whatsapp": "POST /send-whatsapp",
-                "3_add_calendar": "POST /add-calendar-events"
+                "1_submit_form": "POST /submit-health-form"
+            },
+            "run_agents": {
+                "ask_orchestrate": "POST /run-ask-orchestrate-agent",
+                "pa_manager": "POST /run-pa-manager-agent",
+                "pa_allocation": "POST /run-pa-allocation-agent",
+                "healthy_diet": "POST /run-healthy-diet-agent",
+                "diet": "POST /run-diet-agent",
+                "exercise": "POST /run-exercise-agent",
+                "sleep": "POST /run-sleep-agent",
+                "posture": "POST /run-posture-agent",
+                "bodyhealth": "POST /run-bodyhealth-agent",
+                "work": "POST /run-work-agent",
+                "health_assistant": "POST /run-health-assistant-agent",
+                "alert": "POST /run-alert-agent",
+                "appointment_automation": "POST /run-appointment-automation-agent",
+                "recommendation": "POST /run-recommendation-agent",
+                "whatsapp": "POST /send-whatsapp",
+                "calendar_events": "POST /add-calendar-events",
             },
             "utilities": {
                 "get_token": "POST /get-token",
