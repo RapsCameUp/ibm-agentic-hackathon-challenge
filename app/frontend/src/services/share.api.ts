@@ -1,9 +1,17 @@
-import { apiFetch } from './api';
+import { FASTAPI_BASE_URL } from './api';
 
-export async function shareToWhatsApp(conversationId: string, message: string): Promise<string> {
-  const response = await apiFetch<{ url: string }>('/share/whatsapp', {
+export interface ShareResponse {
+  success: boolean;
+  content?: string;
+}
+
+export async function shareToWhatsApp(conversationId: string): Promise<ShareResponse> {
+  const response = await fetch(`${FASTAPI_BASE_URL}/send-whatsapp`, {
     method: 'POST',
-    body: JSON.stringify({ conversationId, message }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ conversationId }),
   });
-  return response.url;
+
+  if (!response.ok) return { success: false };
+  return await response.json();
 }

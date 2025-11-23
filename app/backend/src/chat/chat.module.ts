@@ -8,6 +8,7 @@ import { CalendarModule } from '../calendar/calendar.module';
 import { ShareModule } from '../share/share.module';
 import { AudioModule } from '../audio/audio.module';
 import { DietsModule } from '../diets/diets.module';
+import { IntegrationsModule } from '../integrations/integrations.module';
 import { ChatWindowComponent } from './components/chat-window.component';
 import { ChatAudioComponent } from './components/chat-audio.component';
 import { ChatInputComponent } from './components/chat-input.component';
@@ -22,15 +23,10 @@ import { WatsonxService } from '../integrations/watsonx.service';
     ShareModule,
     AudioModule,
     DietsModule,
+    IntegrationsModule,
   ],
   controllers: [ChatController],
-  providers: [
-    ChatService,
-    ChatWindowComponent,
-    ChatAudioComponent,
-    ChatInputComponent,
-    WatsonxService,
-  ],
+  providers: [ChatService, ChatWindowComponent, ChatAudioComponent, ChatInputComponent],
   exports: [ChatService],
 })
 export class ChatModule {}

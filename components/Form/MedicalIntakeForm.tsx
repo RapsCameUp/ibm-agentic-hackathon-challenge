@@ -10,6 +10,8 @@ import SubmitSection from './SubmitSection';
 import { toast } from 'sonner';
 import { formSchema, type FormData } from '@/lib/formSchema/schema';
 import { Stethoscope } from 'lucide-react';
+import { submitHealthForm } from '@/app/frontend/src/services/form.api';
+import { useRouter } from 'next/navigation';
 
 export default function MedicalIntakeForm() {
   const form = useForm<FormData>({
@@ -18,24 +20,56 @@ export default function MedicalIntakeForm() {
       fullName: '',
       email: '',
       age: '',
+      weight: '',
+      height: '',
       gender: 'prefer-not-to-say',
       symptoms: '',
       medicalHistory: '',
+      dietaryPreferences: '',
+      activityLevel: 'moderate',
+      goals: '',
       consent: false,
     },
   });
 
+  const router = useRouter();
   const {
     handleSubmit,
     formState: { isSubmitting },
   } = form;
 
-  const onSubmit: SubmitHandler<FormData> = (data) => {
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
     console.log('Submitted:', data);
-    toast.success(
-      "Thank you! Your AI health analysis is being prepared. You'll receive results shortly.",
-    );
-    return new Promise<void>((resolve) => setTimeout(resolve, 1500));
+    try {
+      const response = await submitHealthForm({
+        ...data,
+        medicalHistory: data.medicalHistory || '',
+        dietaryPreferences: data.dietaryPreferences || '',
+      });
+      if (response.success) {
+        toast.success('Health analysis complete! Redirecting to chat...');
+
+        // Store analysis results and thread_id for the chat page
+        localStorage.setItem('chat_thread_id', response.thread_id);
+
+        if (response.analysis) {
+          // Check if analysis is an object (already parsed JSON) or string
+          const analysisToStore =
+            typeof response.analysis === 'object'
+              ? JSON.stringify(response.analysis)
+              : response.analysis;
+
+          localStorage.setItem('health_analysis', analysisToStore);
+        }
+
+        router.push('/chat');
+      } else {
+        toast.error('Failed to analyze health data. Please try again.');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('An error occurred. Please try again.');
+    }
   };
 
   return (

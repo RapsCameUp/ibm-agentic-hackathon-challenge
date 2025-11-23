@@ -4,11 +4,10 @@ import { ConversationService } from '../conversation/conversation.service';
 import { RecommendationsService } from '../recommendations/recommendations.service';
 import { RemindersService } from '../reminders/reminders.service';
 import { CalendarService } from '../calendar/calendar.service';
-import { ShareService } from '../share/share.service';
 import { AudioService } from '../audio/audio.service';
 import { Diet1SummaryComponent } from '../diets/diet1-summary.component';
 import { Diet2SummaryComponent } from '../diets/diet2-summary.component';
-import { WatsonxService } from '../integrations/watsonx.service';
+import { WatsonxService, type WatsonxInsights } from '../integrations/watsonx.service';
 import { SendMessageDto } from './dto/send-message.dto';
 import { ChatWindowComponent } from './components/chat-window.component';
 import { ChatAudioComponent } from './components/chat-audio.component';
@@ -21,8 +20,8 @@ export interface ChatResponse {
   recommendations: string[];
   reminders: string[];
   calendarSynced: boolean;
-  shareLink: string;
-  audioPreview: string;
+  shareLink: string | null;
+  audioPreview: string | null;
   diet1Summary: ReturnType<Diet1SummaryComponent['getSummary']>;
   diet2Summary: ReturnType<Diet2SummaryComponent['getSummary']>;
 }
@@ -36,7 +35,6 @@ export class ChatService {
     private readonly recommendationsService: RecommendationsService,
     private readonly remindersService: RemindersService,
     private readonly calendarService: CalendarService,
-    private readonly shareService: ShareService,
     private readonly audioService: AudioService,
     private readonly chatWindowComponent: ChatWindowComponent,
     private readonly chatAudioComponent: ChatAudioComponent,
@@ -59,7 +57,8 @@ export class ChatService {
 
     this.conversationService.appendMessage(conversationId, userMessage);
 
-    const aiReply = await this.generateAssistantReply(cleanedInput);
+    const aiReply = await this.generateAssistantReply(conversationId, cleanedInput);
+    const insights = await this.generateInsights(conversationId, cleanedInput, aiReply);
     const assistantMessage = {
       id: randomUUID(),
       role: 'assistant' as const,
@@ -69,13 +68,12 @@ export class ChatService {
 
     const updatedHistory = this.conversationService.appendMessage(conversationId, assistantMessage);
 
-    const recommendations = this.recommendationsService.generateRecommendations(aiReply);
-    const reminders = this.remindersService.generateReminders(aiReply);
+    const recommendations = this.resolveRecommendations(insights, aiReply);
+    const reminders = this.resolveReminders(insights, aiReply);
     const calendarSynced = await this.calendarService.isSynced(conversationId);
-    const shareLink = this.shareService.createShareLink(conversationId, aiReply);
     const audioPreview = await this.chatAudioComponent.buildPreview(conversationId, aiReply);
-    const diet1Summary = this.diet1SummaryComponent.getSummary();
-    const diet2Summary = this.diet2SummaryComponent.getSummary();
+    const diet1Summary = this.resolveDietSummary(insights, 0, this.diet1SummaryComponent);
+    const diet2Summary = this.resolveDietSummary(insights, 1, this.diet2SummaryComponent);
 
     return {
       conversationId,
@@ -84,10 +82,10 @@ export class ChatService {
       recommendations,
       reminders,
       calendarSynced,
-      shareLink,
+      shareLink: null,
       audioPreview,
-      diet1Summary,
-      diet2Summary,
+      diet1Summary: diet1Summary as any,
+      diet2Summary: diet2Summary as any,
     };
   }
 
@@ -96,12 +94,12 @@ export class ChatService {
     return this.chatWindowComponent.formatHistory(history);
   }
 
-  private async generateAssistantReply(message: string): Promise<string> {
+  private async generateAssistantReply(conversationId: string, message: string): Promise<string> {
     if (this.watsonxService.isEnabled()) {
       try {
-        const response = await this.watsonxService.generateReply(message);
-        if (response) {
-          return response;
+        const result = await this.watsonxService.runAnalysis(conversationId, message);
+        if (result.reply) {
+          return result.reply;
         }
       } catch (error) {
         this.logger.warn(`Failed to generate WatsonX response: ${String(error)}`);
@@ -109,5 +107,63 @@ export class ChatService {
     }
 
     return 'Our assistant is processing your message...';
+  }
+
+  private async generateInsights(
+    conversationId: string,
+    userMessage: string,
+    aiReply: string,
+  ): Promise<WatsonxInsights | null> {
+    if (!this.watsonxService.isEnabled()) {
+      return null;
+    }
+
+    try {
+      return await this.watsonxService.generateInsights(conversationId);
+    } catch (error) {
+      this.logger.warn(`Failed to generate WatsonX insights: ${String(error)}`, { conversationId });
+      return null;
+    }
+  }
+
+  private resolveDietSummary(
+    insights: WatsonxInsights | null,
+    index: number,
+    fallbackProvider: Diet1SummaryComponent | Diet2SummaryComponent,
+  ) {
+    const plan = insights?.dietPlans?.[index];
+
+    if (!plan) {
+      // Return empty structure instead of fallback
+      return {
+        title: '',
+        description: '',
+        calories: 0,
+        highlights: [],
+      };
+    }
+
+    return {
+      title: plan.title ?? '',
+      description: plan.description ?? '',
+      calories: plan.calories ?? 0,
+      highlights: Array.isArray(plan.highlights) ? plan.highlights : [],
+    };
+  }
+
+  private resolveRecommendations(insights: WatsonxInsights | null, context: string): string[] {
+    if (insights?.recommendations && insights.recommendations.length > 0) {
+      return insights.recommendations;
+    }
+
+    return [];
+  }
+
+  private resolveReminders(insights: WatsonxInsights | null, context: string): string[] {
+    if (insights?.reminders && insights.reminders.length > 0) {
+      return insights.reminders;
+    }
+
+    return [];
   }
 }

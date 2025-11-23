@@ -3,7 +3,6 @@ import { ShareService } from './share.service';
 
 interface SharePayload {
   conversationId: string;
-  message: string;
 }
 
 @Controller('share')
@@ -12,9 +11,6 @@ export class ShareController {
 
   @Post('whatsapp')
   shareToWhatsApp(@Body() payload: SharePayload) {
-    const preview = payload.message || '';
-    return {
-      url: this.shareService.createShareLink(payload.conversationId, preview),
-    };
+    return this.shareService.shareToWhatsApp(payload.conversationId);
   }
 }

@@ -16,10 +16,15 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ messages }) => {
   return (
     <div className="chat-window">
       {messages.length === 0 ? (
-        <div className="chat-window__empty">Start the conversation !</div>
+        <div key="empty" className="chat-window__empty">
+          Start the conversation !
+        </div>
       ) : (
-        messages.map((message) => (
-          <div key={message.id} className={`chat-message chat-message--${message.role}`}>
+        messages.map((message, index) => (
+          <div
+            key={`${message.id}-${index}`}
+            className={`chat-message chat-message--${message.role}`}
+          >
             <div className="chat-message__role">
               {message.role === 'user' ? 'You' : 'Health IA Agent'}
             </div>
