@@ -1,5 +1,0 @@
-{
-  "message": "Peux-tu me générer un plan de santé complet. Je souhaite recevoir une réponse au format JSON strict avec les clés suivantes dietPlans, recommendations et reminders",
-  "agent_id": "9c7db189-b302-471d-953c-8f31583446b0",
-  "thread_id": null
-}
